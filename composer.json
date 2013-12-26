@@ -1,0 +1,21 @@
+{
+    "name": "pallo/lib-http-client",
+    "description": "HTTP client library of the Pallo framework",
+    "license": "MIT",
+    "version": "0.1.0",
+    "authors": [
+        {
+            "name": "Joris Vandeweerd",
+            "email": "joris@statik.be"
+        }
+    ],
+    "require": {
+        "pallo/lib-http": ">=0.2.1",
+        "pallo/lib-log": ">=0.2.1"
+    },      
+    "autoload": {
+        "psr-0": {
+            "pallo\\library\\http\\client": ["src/"]
+        }
+    }
+}
