@@ -19,6 +19,12 @@ abstract class AbstractClient implements Client {
     const LOG_SOURCE = 'http';
 
     /**
+     * Default user agent
+     * @var string
+     */
+    const DEFAULT_USER_AGENT = 'Ride';
+
+    /**
      * Name of the default authentication method
      * @var string
      */
@@ -47,6 +53,12 @@ abstract class AbstractClient implements Client {
      * @var integer
      */
     protected $timeout = 10;
+
+    /**
+     * Name of the user agent
+     * @var string
+     */
+    protected $userAgent;
 
     /**
      * Instance of the log
@@ -153,6 +165,23 @@ abstract class AbstractClient implements Client {
     }
 
     /**
+     * Sets the user agent
+     * @param string $userAgent
+     * @return null
+     */
+    public function setUserAgent($userAgent) {
+        $this->userAgent = $userAgent;
+    }
+
+    /**
+     * Gets the user agent
+     * @return string
+     */
+    public function getUserAgent() {
+        return $this->userAgent;
+    }
+
+    /**
      * Creates a header container from the provided headers
      * @param array $headers Header key-value pair
      * @return pallo\library\http\HeaderContainer
@@ -160,16 +189,18 @@ abstract class AbstractClient implements Client {
     public function createHeaderContainer(array $headers = null) {
         $container = new HeaderContainer();
 
-        if (!$headers) {
-            return $container;
-        }
-
-        foreach ($headers as $header => $value) {
-            $container->addHeader($header, $value);
+        if ($headers) {
+            foreach ($headers as $header => $value) {
+                $container->addHeader($header, $value);
+            }
         }
 
         if (!$container->hasHeader(Header::HEADER_USER_AGENT)) {
-            $container->addHeader(Header::HEADER_USER_AGENT, 'PHP Pallo');
+            if (!$this->userAgent) {
+                $this->userAgent = self::DEFAULT_USER_AGENT;
+            }
+
+            $container->setHeader(Header::HEADER_USER_AGENT, $this->userAgent);
         }
 
         return $container;
@@ -187,7 +218,7 @@ abstract class AbstractClient implements Client {
      */
     public function createRequest($method, $url, HeaderContainer $headers = null, $body = null) {
         if ($headers === null) {
-            $headers = new HeaderContainer();
+            $headers = $this->createHeaderContainer();
         }
 
         $vars = parse_url($url);
