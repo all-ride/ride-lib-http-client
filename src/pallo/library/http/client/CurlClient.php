@@ -13,6 +13,12 @@ use pallo\library\http\Response;
 class CurlClient extends AbstractClient {
 
     /**
+     * Handle of cURL
+     * @var resource
+     */
+    protected $curl;
+
+    /**
      * Flag to see if the location header in the response should be followed
      * @var boolean
      */
@@ -41,6 +47,16 @@ class CurlClient extends AbstractClient {
     }
 
     /**
+     * Destructs the HTTP client
+     * @return null
+     */
+    public function __destruct() {
+        if ($this->curl) {
+            curl_close($this->curl);
+        }
+    }
+
+    /**
      * Sets whether the location header in the response should be followed
      * @param boolean $followLocation
      * @return null
@@ -63,10 +79,55 @@ class CurlClient extends AbstractClient {
      * @return pallo\library\http\Response Reponse of the request
      */
     public function sendRequest(LibraryRequest $request) {
-        $curl = curl_init();
+        if (!$this->curl) {
+            $this->curl = curl_init();
+        } else {
+            curl_reset($this->curl);
+        }
 
+        curl_setopt_array($this->curl, $this->getOptions($request));
+
+        // log the request
+        if ($this->log) {
+            $this->log->logDebug('Sending ' . ($request->isSecure() ? 'secure ' : '') . 'request', $request->getMethod() . ' ' . $request->getUrl(), self::LOG_SOURCE);
+//             $this->log->logDebug('Options', var_export($options, true), self::LOG_SOURCE);
+
+            if ($this->username) {
+                $this->log->logDebug('Authorization', $request->getMethod() . ' ' . $this->username, self::LOG_SOURCE);
+            }
+        }
+
+        // perform the request
+        $responseString = curl_exec($this->curl);
+
+        // check for errors
+        $error = curl_error($this->curl);
+        if ($error) {
+            throw new HttpException($error);
+        }
+
+        $this->updateRequestHeaders($request);
+
+        $response = $this->factory->createResponseFromString($responseString);
+
+        // log the response
+        if ($this->log) {
+//             $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
+            $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Gets the cURL options for the provided request
+     * @param pallo\library\http\Request $request
+     * @return array
+     * @throws pallo\library\http\exception\HttpException when an invalid
+     * authentication method has been set
+     */
+    protected function getOptions(LibraryRequest $request) {
         $options = array(
-            CURLOPT_CUSTOMREQUEST => $request->getMethod(),
             CURLOPT_URL => $request->getUrl(),
             CURLOPT_FOLLOWLOCATION => $this->followLocation,
             CURLOPT_HEADER => true,
@@ -74,9 +135,15 @@ class CurlClient extends AbstractClient {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
+            CURLINFO_HEADER_OUT => true,
 //             CURLOPT_VERBOSE => true,
-//             CURLINFO_HEADER_OUT => true,
         );
+
+        if ($request->isHead()) {
+            $options[CURLOPT_NOBODY] = true;
+        } else {
+            $options[CURLOPT_CUSTOMREQUEST] = $request->getMethod();
+        }
 
         if ($this->proxy) {
             $options[CURLOPT_PROXY] = $this->proxy;
@@ -90,63 +157,67 @@ class CurlClient extends AbstractClient {
             if (!$request->getHeaders()->hasHeader('Expect')) {
                 $options[CURLOPT_HTTPHEADER][] = 'Expect:';
             }
+        } else {
+            $options[CURLOPT_HTTPHEADER] = '';
         }
 
         $body = $request->getBody();
         $bodyParameters = $request->getBodyParametersAsString();
         if ($body) {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+            $options[CURLOPT_POSTFIELDS] = $body;
         } elseif ($bodyParameters) {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $bodyParameters);
+            $options[CURLOPT_POSTFIELDS] = $bodyParameters;
         }
 
         if ($request instanceof Request && $request->getUsername()) {
             $method = $request->getAuthenticationMethod();
 
             switch (strtolower($method)) {
-                case Request::AUTHENTICATION_METHOD_BASIC:
-                    $options[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
+            	case Request::AUTHENTICATION_METHOD_BASIC:
+            	    $options[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
 
-                    break;
-                case Request::AUTHENTICATION_METHOD_DIGEST:
-                    $options[CURLOPT_HTTPAUTH] = CURLAUTH_DIGEST;
+            	    break;
+            	case Request::AUTHENTICATION_METHOD_DIGEST:
+            	    $options[CURLOPT_HTTPAUTH] = CURLAUTH_DIGEST;
 
-                    break;
-                default:
-                    throw new HttpException('Could not send the request: invalid authentication method set (' . $method . ')');
+            	    break;
+            	default:
+            	    throw new HttpException('Could not send the request: invalid authentication method set (' . $method . ')');
 
-                    break;
+            	    break;
             }
 
             $options[CURLOPT_USERPWD] = $request->getUsername() . ':' . $request->getPassword();
         }
 
-        curl_setopt_array($curl, $options);
+        return $options;
+    }
 
-        if ($this->log) {
-            $this->log->logDebug('Sending ' . ($request->isSecure() ? 'secure ' : '') . 'request', $request, self::LOG_SOURCE);
-            $this->log->logDebug('Options', var_export($options, true), self::LOG_SOURCE);
+    /**
+     * Sets the actual sended headers to the request
+     * @param pallo\library\http\Request $request
+     * @return null
+     */
+    protected function updateRequestHeaders(LibraryRequest $request) {
+        $info = curl_getinfo($this->curl);
+        $lines = explode("\n", $info['request_header']);
+        if (!$lines) {
+            return;
+        }
 
-            if ($this->username) {
-                $this->log->logDebug('Authorization', $method . ' ' . $this->username, self::LOG_SOURCE);
+        array_shift($lines); // remove status code
+
+        $headers = $request->getHeaders();
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (!$line) {
+                continue;
             }
+
+            list($header, $value) = explode(':', $line, 2);
+
+            $headers->addHeader($header, trim($value));
         }
-
-        $responseString = curl_exec($curl);
-
-        $error = curl_error($curl);
-        if ($error) {
-            throw new HttpException('cURL returned error: ' . $error);
-        }
-
-        if ($this->log) {
-//             $this->log->logDebug(var_export(curl_getinfo($curl), true), null, self::LOG_SOURCE);
-            $this->log->logDebug('Received response', $responseString, self::LOG_SOURCE);
-        }
-
-        curl_close($curl);
-
-        return $this->factory->createResponseFromString($responseString);
     }
 
 }
