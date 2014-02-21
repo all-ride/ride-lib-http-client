@@ -1,8 +1,8 @@
 <?php
 
-namespace pallo\library\http\client;
+namespace ride\library\http\client;
 
-use pallo\library\http\Request as HttpRequest;
+use ride\library\http\Request as HttpRequest;
 
 /**
  * Request for the HTTP client

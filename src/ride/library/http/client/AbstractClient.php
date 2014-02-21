@@ -1,11 +1,11 @@
 <?php
 
-namespace pallo\library\http\client;
+namespace ride\library\http\client;
 
-use pallo\library\http\exception\HttpException;
-use pallo\library\http\Header;
-use pallo\library\http\HeaderContainer;
-use pallo\library\log\Log;
+use ride\library\http\exception\HttpException;
+use ride\library\http\Header;
+use ride\library\http\HeaderContainer;
+use ride\library\log\Log;
 
 /**
  * Abstract implementation of the HTTP client
@@ -62,13 +62,13 @@ abstract class AbstractClient implements Client {
 
     /**
      * Instance of the log
-     * @var pallo\library\log\Log
+     * @var ride\library\log\Log
      */
     protected $log;
 
     /**
      * Sets the log
-     * @param pallo\library\log\Log $log
+     * @param ride\library\log\Log $log
      * @return null
      */
     public function setLog(Log $log) {
@@ -184,7 +184,7 @@ abstract class AbstractClient implements Client {
     /**
      * Creates a header container from the provided headers
      * @param array $headers Header key-value pair
-     * @return pallo\library\http\HeaderContainer
+     * @return ride\library\http\HeaderContainer
      */
     public function createHeaderContainer(array $headers = null) {
         $container = new HeaderContainer();
@@ -210,11 +210,11 @@ abstract class AbstractClient implements Client {
      * Creates a HTTP client request
      * @param string $method HTTP method (GET, POST, ...)
      * @param string $url URL for the request
-     * @param pallo\library\http\HeaderContainer $headers Headers for the
+     * @param ride\library\http\HeaderContainer $headers Headers for the
      * request
      * @param string|array $body URL encoded string or an array of request
      * body arguments
-     * @return pallo\library\http\client\Request
+     * @return ride\library\http\client\Request
      */
     public function createRequest($method, $url, HeaderContainer $headers = null, $body = null) {
         if ($headers === null) {
@@ -266,7 +266,7 @@ abstract class AbstractClient implements Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return pallo\library\http\Response
+     * @return ride\library\http\Response
      */
     public function delete($url, $body = null, array $headers = null) {
         $headers = $this->createHeaderContainer($headers);
@@ -279,7 +279,7 @@ abstract class AbstractClient implements Client {
      * Performs a HEAD request to the provided URL
      * @param string $url URL of the request
      * @param array $headers Array with the headers of the request
-     * @return pallo\library\http\Response
+     * @return ride\library\http\Response
      */
     public function head($url, array $headers = null) {
         $headers = $this->createHeaderContainer($headers);
@@ -292,7 +292,7 @@ abstract class AbstractClient implements Client {
      * Performs a GET request to the provided URL
      * @param string $url URL of the request
      * @param array $headers Array with the headers of the request
-     * @return pallo\library\http\Response
+     * @return ride\library\http\Response
      */
     public function get($url, array $headers = null) {
         $headers = $this->createHeaderContainer($headers);
@@ -307,7 +307,7 @@ abstract class AbstractClient implements Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return pallo\library\http\Response
+     * @return ride\library\http\Response
      */
     public function post($url, $body = null, array $headers = null) {
         $headers = $this->createHeaderContainer($headers);
@@ -322,7 +322,7 @@ abstract class AbstractClient implements Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return pallo\library\http\Response
+     * @return ride\library\http\Response
      */
     public function put($url, $body = null, array $headers = null) {
         $headers = $this->createHeaderContainer($headers);

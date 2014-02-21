@@ -1,6 +1,6 @@
 {
-    "name": "pallo/lib-http-client",
-    "description": "HTTP client library of the Pallo framework",
+    "name": "ride/lib-http-client",
+    "description": "HTTP client library of the Ride framework",
     "license": "MIT",
     "version": "0.1.1",
     "authors": [
@@ -10,12 +10,12 @@
         }
     ],
     "require": {
-        "pallo/lib-http": ">=0.2.1",
-        "pallo/lib-log": ">=0.2.1"
+        "ride/lib-http": ">=0.2.1",
+        "ride/lib-log": ">=0.2.1"
     },      
     "autoload": {
         "psr-0": {
-            "pallo\\library\\http\\client": ["src/"]
+            "ride\\library\\http\\client": ["src/"]
         }
     }
 }
