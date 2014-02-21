@@ -1,3 +1,3 @@
-# Pallo: HTTP Client Library
+# Ride: HTTP Client Library
 
-HTTP client library of the PHP Pallo framework.
+HTTP client library of the PHP Ride framework.
