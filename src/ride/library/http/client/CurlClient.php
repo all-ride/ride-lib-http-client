@@ -106,13 +106,13 @@ class CurlClient extends AbstractClient {
             throw new HttpException($error);
         }
 
-        $this->updateRequestHeaders($request);
+        $info = $this->updateRequestHeaders($request);
 
         $response = $this->factory->createResponseFromString($responseString);
 
         // log the response
         if ($this->log) {
-//             $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
+//            $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
             $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
         }
 
@@ -136,7 +136,7 @@ class CurlClient extends AbstractClient {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
             CURLINFO_HEADER_OUT => true,
-//             CURLOPT_VERBOSE => true,
+//            CURLOPT_VERBOSE => true,
         );
 
         if ($request->isHead()) {
@@ -196,13 +196,14 @@ class CurlClient extends AbstractClient {
     /**
      * Sets the actual sended headers to the request
      * @param ride\library\http\Request $request
-     * @return null
+     * @return array Curl info
      */
     protected function updateRequestHeaders(LibraryRequest $request) {
         $info = curl_getinfo($this->curl);
+
         $lines = explode("\n", $info['request_header']);
         if (!$lines) {
-            return;
+            return $info;
         }
 
         array_shift($lines); // remove status code
@@ -218,6 +219,8 @@ class CurlClient extends AbstractClient {
 
             $headers->addHeader($header, trim($value));
         }
+
+        return $info;
     }
 
 }
