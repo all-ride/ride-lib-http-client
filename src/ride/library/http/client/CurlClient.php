@@ -5,7 +5,6 @@ namespace ride\library\http\client;
 use ride\library\http\exception\HttpException;
 use ride\library\http\HttpFactory;
 use ride\library\http\Request as LibraryRequest;
-use ride\library\http\Response;
 
 /**
  * cURL implementation of the HTTP client
@@ -26,14 +25,14 @@ class CurlClient extends AbstractClient {
 
     /**
      * Instance of the HTTP factory
-     * @var ride\library\http\HttpFactory
+     * @var \ride\library\http\HttpFactory
      */
     protected $factory;
 
     /**
      * Constructs a new HTTP client
      * @return null
-     * @throws ride\library\http\exception\HttpException when cURL is not
+     * @throws \ride\library\http\exception\HttpException when cURL is not
      * available
      */
     public function __construct(HttpFactory $factory) {
@@ -75,8 +74,8 @@ class CurlClient extends AbstractClient {
 
     /**
      * Performs a HTTP request
-     * @param ride\library\http\Request $request Request to send
-     * @return ride\library\http\Response Reponse of the request
+     * @param \ride\library\http\Request $request Request to send
+     * @return \ride\library\http\Response Reponse of the request
      */
     public function sendRequest(LibraryRequest $request) {
         if (!$this->curl) {
@@ -121,9 +120,9 @@ class CurlClient extends AbstractClient {
 
     /**
      * Gets the cURL options for the provided request
-     * @param ride\library\http\Request $request
+     * @param \ride\library\http\Request $request
      * @return array
-     * @throws ride\library\http\exception\HttpException when an invalid
+     * @throws \ride\library\http\exception\HttpException when an invalid
      * authentication method has been set
      */
     protected function getOptions(LibraryRequest $request) {
@@ -195,7 +194,7 @@ class CurlClient extends AbstractClient {
 
     /**
      * Sets the actual sended headers to the request
-     * @param ride\library\http\Request $request
+     * @param \ride\library\http\Request $request
      * @return array Curl info
      */
     protected function updateRequestHeaders(LibraryRequest $request) {
