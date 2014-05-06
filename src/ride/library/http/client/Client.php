@@ -35,18 +35,18 @@ interface Client {
      * Creates a HTTP client request
      * @param string $method HTTP method (GET, POST, ...)
      * @param string $url URL for the request
-     * @param ride\library\http\HeaderContainer $headers Headers for the
+     * @param \ride\library\http\HeaderContainer $headers Headers for the
      * request
      * @param string|array $body URL encoded string or an array of request
      * body arguments
-     * @return ride\library\http\client\Request
+     * @return \ride\library\http\client\Request
      */
     public function createRequest($method, $url, HeaderContainer $headers = null, $body = null);
 
     /**
      * Performs a request
-     * @param ride\library\http\Request $request Request to send
-     * @return ride\library\http\Response Response of the request
+     * @param \ride\library\http\Request $request Request to send
+     * @return \ride\library\http\Response Response of the request
     */
     public function sendRequest(Request $request);
 
@@ -56,7 +56,7 @@ interface Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return ride\library\http\Response
+     * @return \ride\library\http\Response
      */
     public function delete($url, $body = null, array $headers = null);
 
@@ -64,7 +64,7 @@ interface Client {
      * Performs a HEAD request to the provided URL
      * @param string $url URL of the request
      * @param array $headers Array with the headers of the request
-     * @return ride\library\http\Response
+     * @return \ride\library\http\Response
      */
     public function head($url, array $headers = null);
 
@@ -72,7 +72,7 @@ interface Client {
      * Performs a GET request to the provided URL
      * @param string $url URL of the request
      * @param array $headers Array with the headers of the request
-     * @return ride\library\http\Response
+     * @return \ride\library\http\Response
      */
     public function get($url, array $headers = null);
 
@@ -82,7 +82,7 @@ interface Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return ride\library\http\Response
+     * @return \ride\library\http\Response
      */
     public function post($url, $body = null, array $headers = null);
 
@@ -92,7 +92,7 @@ interface Client {
      * @param string|array $body Body variables as a url encoded string or
      * an array with key value pairs
      * @param array $headers Array with the headers of the request
-     * @return ride\library\http\Response
+     * @return \ride\library\http\Response
      */
     public function put($url, $body = null, array $headers = null);
 
