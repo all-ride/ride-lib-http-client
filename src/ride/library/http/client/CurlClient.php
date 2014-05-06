@@ -81,8 +81,6 @@ class CurlClient extends AbstractClient {
     public function sendRequest(LibraryRequest $request) {
         if (!$this->curl) {
             $this->curl = curl_init();
-        } else {
-            curl_reset($this->curl);
         }
 
         curl_setopt_array($this->curl, $this->getOptions($request));
@@ -141,7 +139,9 @@ class CurlClient extends AbstractClient {
 
         if ($request->isHead()) {
             $options[CURLOPT_NOBODY] = true;
+            $options[CURLOPT_CUSTOMREQUEST] = null;
         } else {
+            $options[CURLOPT_NOBODY] = false;
             $options[CURLOPT_CUSTOMREQUEST] = $request->getMethod();
         }
 
@@ -158,7 +158,7 @@ class CurlClient extends AbstractClient {
                 $options[CURLOPT_HTTPHEADER][] = 'Expect:';
             }
         } else {
-            $options[CURLOPT_HTTPHEADER] = '';
+            $options[CURLOPT_HTTPHEADER] = null;
         }
 
         $body = $request->getBody();
@@ -167,6 +167,8 @@ class CurlClient extends AbstractClient {
             $options[CURLOPT_POSTFIELDS] = $body;
         } elseif ($bodyParameters) {
             $options[CURLOPT_POSTFIELDS] = $bodyParameters;
+        } else {
+            $options[CURLOPT_POSTFIELDS] = null;
         }
 
         if ($request instanceof Request && $request->getUsername()) {
@@ -188,6 +190,9 @@ class CurlClient extends AbstractClient {
             }
 
             $options[CURLOPT_USERPWD] = $request->getUsername() . ':' . $request->getPassword();
+        } else {
+            $options[CURLOPT_HTTPAUTH] = null;
+            $options[CURLOPT_USERPWD] = null;
         }
 
         return $options;
