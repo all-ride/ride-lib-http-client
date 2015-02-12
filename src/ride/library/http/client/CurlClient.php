@@ -82,12 +82,14 @@ class CurlClient extends AbstractClient {
             $this->curl = curl_init();
         }
 
-        curl_setopt_array($this->curl, $this->getOptions($request));
+        $options = $this->getOptions($request);
+
+        curl_setopt_array($this->curl, $options);
 
         // log the request
         if ($this->log) {
             $this->log->logDebug('Sending ' . ($request->isSecure() ? 'secure ' : '') . 'request', $request->getMethod() . ' ' . $request->getUrl(), self::LOG_SOURCE);
-//             $this->log->logDebug('Options', var_export($options, true), self::LOG_SOURCE);
+            // $this->log->logDebug('Options', var_export($options, true), self::LOG_SOURCE);
 
             if ($this->username) {
                 $this->log->logDebug('Authorization', $request->getMethod() . ' ' . $this->username, self::LOG_SOURCE);
@@ -109,7 +111,7 @@ class CurlClient extends AbstractClient {
 
         // log the response
         if ($this->log) {
-//            $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
+           // $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
             $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
         }
 
@@ -133,7 +135,7 @@ class CurlClient extends AbstractClient {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
             CURLINFO_HEADER_OUT => true,
-//            CURLOPT_VERBOSE => true,
+           // CURLOPT_VERBOSE => true,
         );
 
         if ($request->isHead()) {
