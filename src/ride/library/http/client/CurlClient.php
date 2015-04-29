@@ -112,7 +112,7 @@ class CurlClient extends AbstractClient {
         // log the response
         if ($this->log) {
            // $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
-            $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
+           $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
         }
 
         return $response;
@@ -128,15 +128,18 @@ class CurlClient extends AbstractClient {
     protected function getOptions(LibraryRequest $request) {
         $options = array(
             CURLOPT_URL => $request->getUrl(),
-            CURLOPT_FOLLOWLOCATION => $this->followLocation,
             CURLOPT_HEADER => true,
             CURLOPT_FAILONERROR => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
             CURLINFO_HEADER_OUT => true,
-           // CURLOPT_VERBOSE => true,
+            // CURLOPT_VERBOSE => true,
         );
+
+        if ($this->followLocation) {
+            $options[CURLOPT_FOLLOWLOCATION] = $this->followLocation;
+        }
 
         if ($request->isHead()) {
             $options[CURLOPT_NOBODY] = true;
