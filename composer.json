@@ -10,9 +10,9 @@
         }
     ],
     "require": {
-        "ride/lib-http": ">=0.2.1",
+        "ride/lib-http": ">=0.4.0",
         "ride/lib-log": ">=0.2.1"
-    },      
+    },
     "autoload": {
         "psr-0": {
             "ride\\library\\http\\client": ["src/"]

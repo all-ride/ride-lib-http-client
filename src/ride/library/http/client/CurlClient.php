@@ -3,6 +3,8 @@
 namespace ride\library\http\client;
 
 use ride\library\http\exception\HttpException;
+use ride\library\http\Cookie;
+use ride\library\http\Header;
 use ride\library\http\HttpFactory;
 use ride\library\http\Request as LibraryRequest;
 
@@ -30,6 +32,12 @@ class CurlClient extends AbstractClient {
     protected $factory;
 
     /**
+     * Cookies received from previous requests
+     * @var array
+     */
+    protected $cookies;
+
+    /**
      * Constructs a new HTTP client
      * @return null
      * @throws \ride\library\http\exception\HttpException when cURL is not
@@ -41,6 +49,7 @@ class CurlClient extends AbstractClient {
         }
 
         $this->factory = $factory;
+        $this->cookies = array();
         $this->authenticationMethod = Request::AUTHENTICATION_METHOD_BASIC;
         $this->followLocation = false;
     }
@@ -76,6 +85,7 @@ class CurlClient extends AbstractClient {
      * Performs a HTTP request
      * @param \ride\library\http\Request $request Request to send
      * @return \ride\library\http\Response Reponse of the request
+     * @throws \ride\library\http\exception\HttpException
      */
     public function sendRequest(LibraryRequest $request) {
         if (!$this->curl) {
@@ -113,6 +123,20 @@ class CurlClient extends AbstractClient {
         if ($this->log) {
            // $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
            $this->log->logDebug('Received response', $response->getStatusCode(), self::LOG_SOURCE);
+        }
+
+        // save the cookies for further requests
+        $cookies = $response->getHeader(Header::HEADER_SET_COOKIE);
+        if ($cookies) {
+            if (!is_array($cookies)) {
+                $cookies = array($cookies);
+            }
+
+            foreach ($cookies as $cookie) {
+                $cookie = $this->factory->createCookieFromString($cookie, $request->getHeader(Header::HEADER_HOST));
+
+                $this->registerCookie($cookie);
+            }
         }
 
         return $response;
@@ -199,6 +223,16 @@ class CurlClient extends AbstractClient {
             $options[CURLOPT_USERPWD] = null;
         }
 
+        // set cookies
+        $cookies = $this->getCookies($request);
+        if ($cookies) {
+            foreach ($cookies as $cookieIndex => $cookie) {
+                $cookies[$cookieIndex] = $cookie->getName() . '=' . urlencode($cookie->getValue());
+            }
+
+            $options[CURLOPT_COOKIE] = implode('; ', $cookies);
+        }
+
         return $options;
     }
 
@@ -230,6 +264,72 @@ class CurlClient extends AbstractClient {
         }
 
         return $info;
+    }
+
+    /**
+     * Registers a cookie
+     * @param \ride\library\http\Cookie $cookie
+     * @return null
+     */
+    protected function registerCookie(Cookie $cookie) {
+        $domain = $cookie->getDomain();
+
+        $path = $cookie->getPath();
+        if (!$path) {
+            $path = '/';
+        }
+
+        if (!isset($this->cookies[$domain])) {
+            $this->cookies[$domain] = array($path => array());
+        } elseif (!isset($this->cookies[$domain][$path])) {
+            $this->cookies[$domain][$path] = array();
+        }
+
+        $this->cookies[$domain][$path][$cookie->getName()] = $cookie;
+    }
+
+    /**
+     * Gets the cookies for the provided request
+     * @param \ride\library\http\Request $request
+     * @return array
+     * @see \ride\library\http\Cookie
+     */
+    protected function getCookies(Request $request) {
+        $result = array();
+
+        $isSecure = $request->isSecure();
+        $domain = $request->getHeader(Header::HEADER_HOST);
+        $domainLength = strlen($domain);
+        $path = $request->getPath();
+        $time = time();
+
+        foreach ($this->cookies as $cookieDomain => $cookiePaths) {
+            $domainPosition = strpos($domain, $cookieDomain);
+            if ($domainPosition === false || $domainPosition != $domainLength - strlen($cookieDomain)) {
+                continue;
+            }
+
+            foreach ($cookiePaths as $cookiePath => $cookies) {
+                if (strpos($path, $cookiePath) !== 0) {
+                    continue;
+                }
+
+                foreach ($cookies as $cookieName => $cookie) {
+                    $expires = $cookie->getExpires();
+                    if ($expires < $time) {
+                        unset($this->cookies[$cookieDomain][$cookiePath][$cookieName]);
+
+                        continue;
+                    } elseif ($cookie->isSecure() && !$isSecure) {
+                        continue;
+                    }
+
+                    $result[$cookie->getName()] = $cookie;
+                }
+            }
+        }
+
+        return $result;
     }
 
 }
