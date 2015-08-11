@@ -316,7 +316,7 @@ class CurlClient extends AbstractClient {
 
                 foreach ($cookies as $cookieName => $cookie) {
                     $expires = $cookie->getExpires();
-                    if ($expires < $time) {
+                    if ($expires && $expires < $time) {
                         unset($this->cookies[$cookieDomain][$cookiePath][$cookieName]);
 
                         continue;
