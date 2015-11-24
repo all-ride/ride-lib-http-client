@@ -161,8 +161,12 @@ class CurlClient extends AbstractClient {
             // CURLOPT_VERBOSE => true,
         );
 
-        if ($this->followLocation) {
-            $options[CURLOPT_FOLLOWLOCATION] = $this->followLocation;
+        if ($request instanceof Request) {
+            if ($request->willFollowLocation()) {
+                $options[CURLOPT_FOLLOWLOCATION] = true;
+            }
+        } elseif ($this->followLocation) {
+            $options[CURLOPT_FOLLOWLOCATION] = true;
         }
 
         if ($request->isHead()) {
