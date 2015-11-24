@@ -24,6 +24,18 @@ abstract class AbstractClient implements Client {
     const DEFAULT_USER_AGENT = 'Ride';
 
     /**
+     * Instance of the log
+     * @var \ride\library\log\Log
+     */
+    protected $log;
+
+    /**
+     * Flag to see if the location header in the response should be followed
+     * @var boolean
+     */
+    protected $followLocation;
+
+    /**
      * Name of the default authentication method
      * @var string
      */
@@ -60,18 +72,29 @@ abstract class AbstractClient implements Client {
     protected $userAgent;
 
     /**
-     * Instance of the log
-     * @var \ride\library\log\Log
-     */
-    protected $log;
-
-    /**
      * Sets the log
      * @param \ride\library\log\Log $log
      * @return null
      */
     public function setLog(Log $log) {
         $this->log = $log;
+    }
+
+    /**
+     * Sets whether the location header in the response should be followed
+     * @param boolean $followLocation
+     * @return null
+     */
+    public function setFollowLocation($followLocation) {
+        $this->followLocation = $followLocation;
+    }
+
+    /**
+     * Gets whether the location header in the response should be followed
+     * @return boolean
+     */
+    public function willFollowLocation() {
+        return $this->followLocation;
     }
 
     /**
@@ -254,6 +277,10 @@ abstract class AbstractClient implements Client {
 
         if (isset($vars['scheme']) && $vars['scheme'] == 'https') {
             $request->setIsSecure(true);
+        }
+
+        if ($this->followLocation) {
+            $request->setFollowLocation(true);
         }
 
         return $request;

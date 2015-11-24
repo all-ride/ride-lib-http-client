@@ -28,6 +28,12 @@ class Request extends HttpRequest {
     protected $port;
 
     /**
+     * Flag to see if the location header in the response should be followed
+     * @var boolean
+     */
+    protected $followLocation;
+
+    /**
      * Name of the authentication method
      * @var string
      */
@@ -75,6 +81,23 @@ class Request extends HttpRequest {
         }
 
         return $url;
+    }
+
+    /**
+     * Sets whether the location header in the response should be followed
+     * @param boolean $followLocation
+     * @return null
+     */
+    public function setFollowLocation($followLocation) {
+        $this->followLocation = $followLocation;
+    }
+
+    /**
+     * Gets whether the location header in the response should be followed
+     * @return boolean
+     */
+    public function willFollowLocation() {
+        return $this->followLocation;
     }
 
     /**
