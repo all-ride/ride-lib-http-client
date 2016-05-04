@@ -26,6 +26,12 @@ class CurlClient extends AbstractClient {
     protected $followLocation;
 
     /**
+     * Flag to see if IPv4 should be forced
+     * @var boolean
+     */
+    protected $forceIpv4;
+
+    /**
      * Instance of the HTTP factory
      * @var \ride\library\http\HttpFactory
      */
@@ -52,6 +58,7 @@ class CurlClient extends AbstractClient {
         $this->cookies = array();
         $this->authenticationMethod = Request::AUTHENTICATION_METHOD_BASIC;
         $this->followLocation = false;
+        $this->forceIpv4 = false;
     }
 
     /**
@@ -79,6 +86,23 @@ class CurlClient extends AbstractClient {
      */
     public function willFollowLocation() {
         return $this->followLocation;
+    }
+
+    /**
+     * Sets whether IPv4 should be forced
+     * @param boolean $forceIpv4
+     * @return null
+     */
+    public function setForceIpv4($forceIpv4) {
+        $this->forceIpv4 = $forceIpv4;
+    }
+
+    /**
+     * Gets whether IPv4 should be forced
+     * @return boolean
+     */
+    public function willForceIpv4() {
+        return $this->forceIpv4;
     }
 
     /**
@@ -175,6 +199,10 @@ class CurlClient extends AbstractClient {
         } else {
             $options[CURLOPT_NOBODY] = false;
             $options[CURLOPT_CUSTOMREQUEST] = $request->getMethod();
+        }
+
+        if ($this->forceIpv4 && defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')){
+           $options[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
         }
 
         if ($this->proxy) {
