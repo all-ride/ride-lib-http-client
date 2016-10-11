@@ -2,7 +2,6 @@
     "name": "ride/lib-http-client",
     "description": "HTTP client library of the Ride framework",
     "license": "MIT",
-    "version": "0.4.0",
     "authors": [
         {
             "name": "Joris Vandeweerd",
@@ -10,12 +9,17 @@
         }
     ],
     "require": {
-        "ride/lib-http": ">=0.4.0",
-        "ride/lib-log": ">=0.2.1"
+        "ride/lib-http": "^1.0.0",
+        "ride/lib-log": "^1.0.0"
     },
     "autoload": {
         "psr-0": {
-            "ride\\library\\http\\client": ["src/", "test/src"]
+            "ride\\library\\http\\client": ["src/"]
+        }
+    },
+    "autoload": {
+        "psr-0": {
+            "ride\\library\\http\\client": ["test/src"]
         }
     }
 }
