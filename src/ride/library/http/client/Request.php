@@ -3,6 +3,7 @@
 namespace ride\library\http\client;
 
 use ride\library\http\Request as HttpRequest;
+use ride\library\validation\exception\ValidationException;
 
 /**
  * Request for the HTTP client
@@ -106,7 +107,11 @@ class Request extends HttpRequest {
      * @return null
      */
     public function setAuthenticationMethod($method) {
+        if ($method != self::AUTHENTICATION_METHOD_BASIC && $method != self::AUTHENTICATION_METHOD_DIGEST) {
+            throw new ValidationException();
+        }
         $this->authenticationMethod = $method;
+
     }
 
     /**
