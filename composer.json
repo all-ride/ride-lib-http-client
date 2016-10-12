@@ -17,7 +17,7 @@
             "ride\\library\\http\\client": ["src/"]
         }
     },
-    "autoload": {
+    "autoload-dev": {
         "psr-0": {
             "ride\\library\\http\\client": ["test/src"]
         }
