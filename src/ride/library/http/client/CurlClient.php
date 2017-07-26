@@ -118,6 +118,13 @@ class CurlClient extends AbstractClient {
 
         $options = $this->getOptions($request);
 
+        // work around safe mode
+        $isManualFollowLocation = false;
+        if (isset($options[CURLOPT_FOLLOWLOCATION]) && $options[CURLOPT_FOLLOWLOCATION] && (ini_get('safe_mode') || ini_get('open_basedir'))) {
+            unset($options[CURLOPT_FOLLOWLOCATION]);
+            $isManualFollowLocation = true;
+        }
+
         curl_setopt_array($this->curl, $options);
 
         // log the request
@@ -143,6 +150,11 @@ class CurlClient extends AbstractClient {
 
         $response = $this->factory->createResponseFromString($responseString);
 
+        // all followed locations are inside the response string, resolve to the last response
+        while (isset($options[CURLOPT_FOLLOWLOCATION]) && $response->willRedirect()) {
+            $response = $this->factory->createResponseFromString($response->getBody());
+        }
+
         // log the response
         if ($this->log) {
            // $this->log->logDebug(var_export($info, true), null, self::LOG_SOURCE);
@@ -162,6 +174,22 @@ class CurlClient extends AbstractClient {
                 $this->registerCookie($cookie);
             }
         }
+
+        // work around safe mode
+        if ($isManualFollowLocation && $response->willRedirect()) {
+            $location = $response->getHeader('Location');
+            if (!$location) {
+                $location = $response->getHeader('Uri');
+            }
+
+            if ($location) {
+                $parsedUrl = parse_url($location);
+                if ($parsedUrl && ($parsedUrl['scheme'] == 'http' || $parsedUrl['scheme'] == 'https')) {
+                    return $this->get($location);
+                }
+            }
+        }
+
 
         return $response;
     }
@@ -187,6 +215,8 @@ class CurlClient extends AbstractClient {
 
         if ($request instanceof Request) {
             if ($request->willFollowLocation()) {
+                $options[CURLOPT_FOLLOWLOCATION] = true;
+            } elseif ($this->followLocation) {
                 $options[CURLOPT_FOLLOWLOCATION] = true;
             }
         } elseif ($this->followLocation) {

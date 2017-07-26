@@ -5,15 +5,12 @@ namespace ride\library\http\client;
 use \PHPUnit_Framework_TestCase;
 use ride\library\http\Request;
 
-class AbstractClientTest extends PHPUnit_Framework_TestCase {
+abstract class AbstractClientTest extends PHPUnit_Framework_TestCase {
 
-
-    public function setUp() {
-        $this->client = new TestClient();
-    }
+    protected $client;
 
     public function testFollowLocation() {
-        $this->assertNull($this->client->willFollowLocation());
+        $this->assertFalse($this->client->willFollowLocation());
 
         $this->client->setFollowLocation(true);
         $this->assertTrue($this->client->willFollowLocation());
@@ -21,6 +18,24 @@ class AbstractClientTest extends PHPUnit_Framework_TestCase {
 
     public function testCreateHeaderContainer() {
         $this->assertInstanceOf('ride\\library\\http\\HeaderContainer', $this->client->createHeaderContainer());
+    }
+
+    public function testFollowLocationActuallyFollowsLocation() {
+        $url = 'http://www.google.com';
+
+        $this->client->setFollowLocation(false);
+
+        $response = $this->client->get($url);
+
+        $this->assertFalse($response->isOk());
+        $this->assertTrue($response->willRedirect());
+
+        $this->client->setFollowLocation(true);
+
+        $response = $this->client->get($url);
+
+        $this->assertTrue($response->isOk());
+        $this->assertFalse($response->willRedirect());
     }
 
 }
